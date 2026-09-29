@@ -70,7 +70,7 @@ corpus/  (.md .txt .pdf)
    → grounded answer with [n] citations, or abstain
 ```
 
-Production embeddings are local `sentence-transformers/all-MiniLM-L6-v2`. Generation is Anthropic or OpenAI, chosen with `ASK_ASHISH_LLM_PROVIDER`. The model id is `ASK_ASHISH_ANSWER_MODEL` or a provider default (`claude-sonnet-4-5`, `gpt-4o-mini`). Those defaults are starting points, not a statement about which model a deploy is running.
+Production embeddings are local `sentence-transformers/all-MiniLM-L6-v2`. Generation is Anthropic, OpenAI, or Groq, chosen with `ASK_ASHISH_LLM_PROVIDER`. Groq is called with the OpenAI client at `https://api.groq.com/openai/v1` and `ASK_ASHISH_LLM_API_KEY`. The model id is `ASK_ASHISH_ANSWER_MODEL` or a provider default (`claude-sonnet-4-5`, `gpt-4o-mini`, `llama-3.3-70b-versatile`). Those defaults are starting points, not a statement about which model a deploy is running.
 
 The index is rebuilt from `corpus/` every time the process starts. A Railway volume is optional; the corpus is in the image. Ephemeral disk is enough.
 
@@ -111,7 +111,7 @@ To call a real model locally:
 ```bash
 pip install -e ".[minilm]"
 export ASK_ASHISH_EMBEDDINGS=minilm
-export ASK_ASHISH_LLM_PROVIDER=anthropic   # or openai
+export ASK_ASHISH_LLM_PROVIDER=anthropic   # or openai or groq
 export ASK_ASHISH_LLM_API_KEY=...          # never commit this
 export ASK_ASHISH_REQUIRE_LLM=1
 ./scripts/run_dev.sh
@@ -123,9 +123,9 @@ Copy `.env.example`. Every variable uses the prefix `ASK_ASHISH_`.
 
 | Variable | Role |
 | --- | --- |
-| `ASK_ASHISH_LLM_PROVIDER` | `anthropic` or `openai` |
-| `ASK_ASHISH_LLM_API_KEY` | Server-side key. Empty → mock generator. |
-| `ASK_ASHISH_ANSWER_MODEL` | Optional model id for that provider. |
+| `ASK_ASHISH_LLM_PROVIDER` | `anthropic`, `openai`, or `groq` |
+| `ASK_ASHISH_LLM_API_KEY` | Server-side key. Empty → mock generator. For Groq this is the Groq API key. |
+| `ASK_ASHISH_ANSWER_MODEL` | Optional model id. Defaults: `claude-sonnet-4-5`, `gpt-4o-mini`, `llama-3.3-70b-versatile`. |
 | `ASK_ASHISH_REQUIRE_LLM` | `1` refuses to boot if the key is empty. |
 | `ASK_ASHISH_EMBEDDINGS` | `minilm` or `hash` |
 | `ASK_ASHISH_EMBEDDING_MODEL` | Hugging Face id used when embeddings are `minilm` |
@@ -158,7 +158,7 @@ The container listens on `0.0.0.0` and `$PORT`. `railway.toml` points the health
 1. Create a Railway project from this GitHub repo. The Dockerfile is the builder.
 2. The image installs MiniLM at **build** time and sets `ASK_ASHISH_REQUIRE_LLM=1`. The first image build is large because of PyTorch.
 3. Set variables on the service (not in git):
-   - `ASK_ASHISH_LLM_PROVIDER` = `anthropic` or `openai`
+   - `ASK_ASHISH_LLM_PROVIDER` = `anthropic`, `openai`, or `groq`
    - `ASK_ASHISH_LLM_API_KEY` = your key
    - `ASK_ASHISH_REQUIRE_LLM` = `1`
    - `ASK_ASHISH_EMBEDDINGS` = `minilm` (already the image default)
