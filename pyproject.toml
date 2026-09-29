@@ -1,0 +1,48 @@
+[project]
+name = "ask-ashish"
+version = "0.1.0"
+description = "Portfolio RAG chatbot API that answers as Ashish Kosana from published materials only."
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Ashish Kosana", email = "ashishkosana@gmail.com" }
+]
+license = { text = "MIT" }
+dependencies = [
+    "anthropic>=0.40",
+    "chromadb>=0.5",
+    "fastapi>=0.115",
+    "openai>=1.50",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.5",
+    "pypdf>=5.0",
+    "uvicorn>=0.32",
+]
+
+[project.optional-dependencies]
+minilm = [
+    "sentence-transformers>=3.0",
+]
+dev = [
+    "httpx>=0.27",
+    "pytest>=8.3",
+    "ruff>=0.7",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

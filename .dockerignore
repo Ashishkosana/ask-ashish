@@ -1,0 +1,13 @@
+.git
+.venv
+.chroma
+.env
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+tests
+*.egg-info
+.hf
+.cache
