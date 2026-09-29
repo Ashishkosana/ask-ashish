@@ -1,8 +1,16 @@
+import sys
+import types
+
+from ask_ashish.config import DEFAULT_GROQ_MODEL, Settings
 from ask_ashish.generate import (
     ABSTAIN_SENTENCE,
+    GROQ_BASE_URL,
     SYSTEM,
     AnthropicGenerator,
+    GroqGenerator,
+    MockGenerator,
     OpenAIGenerator,
+    build_generator,
     citations_from_answer,
     is_abstention,
 )
@@ -104,3 +112,43 @@ def test_openai_generator_uses_max_completion_tokens() -> None:
     assert client.chat.completions.kwargs["model"] == "gpt-test"
     assert client.chat.completions.kwargs["max_completion_tokens"] == 80
     assert client.chat.completions.kwargs["messages"][0]["content"] == SYSTEM
+
+
+def test_groq_uses_openai_client_without_network(monkeypatch) -> None:
+    created: dict[str, str] = {}
+    chats: list[_OpenAIChat] = []
+
+    class _FakeOpenAI:
+        def __init__(self, **kwargs: str) -> None:
+            created.update(kwargs)
+            self.chat = _OpenAIChat()
+            chats.append(self.chat)
+
+    fake_openai = types.ModuleType("openai")
+    fake_openai.OpenAI = _FakeOpenAI
+    monkeypatch.setitem(sys.modules, "openai", fake_openai)
+
+    settings = Settings(
+        llm_provider="groq",
+        llm_api_key="test-groq-key",
+        answer_model="",
+        embeddings="hash",
+    )
+    assert settings.resolved_model == DEFAULT_GROQ_MODEL
+    assert settings.resolved_model == "llama-3.3-70b-versatile"
+
+    generator = build_generator(settings)
+    assert isinstance(generator, GroqGenerator)
+    text = generator.generate("stack", [_hit("bio.md")])
+    assert text == "Cited [1]."
+    assert created == {"api_key": "test-groq-key", "base_url": GROQ_BASE_URL}
+    assert created["base_url"] == "https://api.groq.com/openai/v1"
+    sent = chats[0].completions.kwargs
+    assert sent["model"] == "llama-3.3-70b-versatile"
+    assert sent["max_completion_tokens"] == settings.max_tokens
+    assert sent["messages"][0]["content"] == SYSTEM
+    assert "bio.md" in sent["messages"][1]["content"]
+    assert "test-groq-key" not in sent["messages"][1]["content"]
+
+    offline = Settings(llm_provider="groq", llm_api_key="", embeddings="hash")
+    assert isinstance(build_generator(offline), MockGenerator)

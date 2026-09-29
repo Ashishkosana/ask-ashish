@@ -10,6 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-5"
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 
 class Settings(BaseSettings):
@@ -22,7 +23,7 @@ class Settings(BaseSettings):
     )
 
     llm_api_key: str = ""
-    llm_provider: Literal["anthropic", "openai"] = "anthropic"
+    llm_provider: Literal["anthropic", "openai", "groq"] = "anthropic"
     require_llm: bool = False
     answer_model: str = ""
     max_tokens: int = Field(default=600, ge=64, le=2000)
@@ -59,6 +60,8 @@ class Settings(BaseSettings):
             return chosen
         if self.llm_provider == "openai":
             return DEFAULT_OPENAI_MODEL
+        if self.llm_provider == "groq":
+            return DEFAULT_GROQ_MODEL
         return DEFAULT_ANTHROPIC_MODEL
 
     @property

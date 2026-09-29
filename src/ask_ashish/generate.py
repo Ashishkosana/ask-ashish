@@ -1,4 +1,4 @@
-"""Grounded answer generation: a mock for offline use, or Anthropic / OpenAI."""
+"""Grounded answer generation: a mock for offline use, or Anthropic / OpenAI / Groq."""
 
 from __future__ import annotations
 
@@ -156,12 +156,28 @@ class AnthropicGenerator:
         return self._client
 
 
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+
+
 class OpenAIGenerator:
-    def __init__(self, *, api_key: str, model: str, max_tokens: int, client=None) -> None:
+    """Chat completions on an OpenAI-compatible API. Groq sets ``base_url``."""
+
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        model: str,
+        max_tokens: int,
+        client=None,
+        base_url: str | None = None,
+        provider: str = "openai",
+    ) -> None:
         self._api_key = api_key
         self._model = model
         self._max_tokens = max_tokens
         self._client = client
+        self._base_url = base_url
+        self._provider = provider
 
     def generate(self, message: str, hits: list[Hit]) -> str:
         client = self._client or self._build_client()
@@ -175,16 +191,33 @@ class OpenAIGenerator:
                 ],
             )
         except Exception as exc:
-            logger.error("openai request failed: %s", type(exc).__name__)
-            raise LlmError("openai request failed") from exc
+            logger.error("%s request failed: %s", self._provider, type(exc).__name__)
+            raise LlmError(f"{self._provider} request failed") from exc
         content = response.choices[0].message.content or ""
         return content.strip()
 
     def _build_client(self):
         from openai import OpenAI
 
-        self._client = OpenAI(api_key=self._api_key)
+        kwargs: dict[str, str] = {"api_key": self._api_key}
+        if self._base_url:
+            kwargs["base_url"] = self._base_url
+        self._client = OpenAI(**kwargs)
         return self._client
+
+
+class GroqGenerator(OpenAIGenerator):
+    """Groq chat completions through the OpenAI client."""
+
+    def __init__(self, *, api_key: str, model: str, max_tokens: int, client=None) -> None:
+        super().__init__(
+            api_key=api_key,
+            model=model,
+            max_tokens=max_tokens,
+            client=client,
+            base_url=GROQ_BASE_URL,
+            provider="groq",
+        )
 
 
 def build_generator(settings) -> Generator:  # noqa: ANN001
@@ -197,4 +230,6 @@ def build_generator(settings) -> Generator:  # noqa: ANN001
     }
     if settings.llm_provider == "openai":
         return OpenAIGenerator(**kwargs)
+    if settings.llm_provider == "groq":
+        return GroqGenerator(**kwargs)
     return AnthropicGenerator(**kwargs)
