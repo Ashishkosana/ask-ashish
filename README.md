@@ -70,7 +70,7 @@ corpus/  (.md .txt .pdf)
    → grounded answer with [n] citations, or abstain
 ```
 
-Production embeddings are local `sentence-transformers/all-MiniLM-L6-v2`. Generation is Anthropic, OpenAI, or Groq, chosen with `ASK_ASHISH_LLM_PROVIDER`. Groq is called with the OpenAI client at `https://api.groq.com/openai/v1` and `ASK_ASHISH_LLM_API_KEY`. The model id is `ASK_ASHISH_ANSWER_MODEL` or a provider default (`claude-sonnet-4-5`, `gpt-4o-mini`, `llama-3.3-70b-versatile`). Those defaults are starting points, not a statement about which model a deploy is running.
+Production embeddings are local `sentence-transformers/all-MiniLM-L6-v2`. Generation is Anthropic, OpenAI, or Groq, chosen with `ASK_ASHISH_LLM_PROVIDER`. Groq is called with the OpenAI client at `https://api.groq.com/openai/v1` and `ASK_ASHISH_LLM_API_KEY`. The model id is `ASK_ASHISH_ANSWER_MODEL` or a provider default (`claude-sonnet-4-5`, `gpt-4o-mini`, `openai/gpt-oss-120b`). Those defaults are starting points, not a statement about which model a deploy is running.
 
 The index is rebuilt from `corpus/` every time the process starts. A Railway volume is optional; the corpus is in the image. Ephemeral disk is enough.
 
@@ -125,7 +125,7 @@ Copy `.env.example`. Every variable uses the prefix `ASK_ASHISH_`.
 | --- | --- |
 | `ASK_ASHISH_LLM_PROVIDER` | `anthropic`, `openai`, or `groq` |
 | `ASK_ASHISH_LLM_API_KEY` | Server-side key. Empty → mock generator. For Groq this is the Groq API key. |
-| `ASK_ASHISH_ANSWER_MODEL` | Optional model id. Defaults: `claude-sonnet-4-5`, `gpt-4o-mini`, `llama-3.3-70b-versatile`. |
+| `ASK_ASHISH_ANSWER_MODEL` | Optional model id. Defaults: `claude-sonnet-4-5`, `gpt-4o-mini`, `openai/gpt-oss-120b`. |
 | `ASK_ASHISH_REQUIRE_LLM` | `1` refuses to boot if the key is empty. |
 | `ASK_ASHISH_EMBEDDINGS` | `minilm` or `hash` |
 | `ASK_ASHISH_EMBEDDING_MODEL` | Hugging Face id used when embeddings are `minilm` |
