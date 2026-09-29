@@ -135,7 +135,7 @@ def test_groq_uses_openai_client_without_network(monkeypatch) -> None:
         embeddings="hash",
     )
     assert settings.resolved_model == DEFAULT_GROQ_MODEL
-    assert settings.resolved_model == "llama-3.3-70b-versatile"
+    assert settings.resolved_model == "openai/gpt-oss-120b"
 
     generator = build_generator(settings)
     assert isinstance(generator, GroqGenerator)
@@ -144,7 +144,7 @@ def test_groq_uses_openai_client_without_network(monkeypatch) -> None:
     assert created == {"api_key": "test-groq-key", "base_url": GROQ_BASE_URL}
     assert created["base_url"] == "https://api.groq.com/openai/v1"
     sent = chats[0].completions.kwargs
-    assert sent["model"] == "llama-3.3-70b-versatile"
+    assert sent["model"] == "openai/gpt-oss-120b"
     assert sent["max_completion_tokens"] == settings.max_tokens
     assert sent["messages"][0]["content"] == SYSTEM
     assert "bio.md" in sent["messages"][1]["content"]
